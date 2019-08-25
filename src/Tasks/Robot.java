@@ -21,7 +21,8 @@ public class Robot implements Participantable{
         return (h <= maxHeight) ? true : false;
     }
 
-    public String getName() {
+    @Override
+    public String toString() {
         return name;
     }
 }

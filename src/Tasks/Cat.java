@@ -20,7 +20,8 @@ public class Cat implements Participantable{
         return (h<= height) ? true : false;
     }
 
-    public String getName() {
+    @Override
+    public String toString() {
         return name;
     }
 }

@@ -27,17 +27,17 @@ public class Main {
         for(Participantable p : participant) {
             for (Resistuble d : difficultys) {
 
-                if ((d.getClass()).equals(Wall.class)){
+                if (d instanceof Wall){
                     if (p.jump(d.getLength())){
                         System.out.println("Отлично прыгает!");
                     }else {
-                        System.out.println("Увы, ему не удалось так высоко подпрыгнуть. " + p.getName() + " покидает соревнования.");
+                        System.out.println("Увы, ему не удалось так высоко подпрыгнуть. " + p + " покидает соревнования.");
                         break;}
                 } else {
                     if (p.run(d.getLength())) {
                     System.out.println("Отлично бежит!");
                     }else {
-                        System.out.println("Увы, пробег не удался. " + p.getName() + " покидает соревнования.");
+                        System.out.println("Увы, пробег не удался. " + p + " покидает соревнования.");
                         break;
                     }
                 }

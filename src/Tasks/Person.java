@@ -20,8 +20,8 @@ public class Person implements Participantable{
         System.out.println(name + " пытается прыгнуть на высоту " + h + " метров.");
         return (h <= maxHeight) ? true : false;
     }
-
-    public String getName() {
+    @Override
+    public String toString() {
         return name;
     }
 }
