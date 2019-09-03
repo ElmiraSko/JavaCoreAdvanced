@@ -30,15 +30,8 @@ public class ChatWindow extends JFrame{
         textField = new JTextField(16);
         textField.setFont(new Font("TimesRoman", Font.PLAIN, 14));
 
-        textField.addKeyListener(new KeyAdapter() {
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode()==KeyEvent.VK_ENTER){
-                    String text = textField.getText();
-                    textArea.append(" - " + text + "\n");
-                    textField.setText("");
-                }
-            }
-        });
+        textField.addActionListener(new MyButtonListener());
+
         button = new JButton("Отправить");
         button.addActionListener(new MyButtonListener());
         bottomPanel.add(textField);
@@ -53,15 +46,11 @@ public class ChatWindow extends JFrame{
     }
 
     class MyButtonListener implements ActionListener{
-
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (e.getActionCommand().equals("Отправить")){
-                String text = textField.getText();
-                textArea.append(" - " + text + "\n");
-                textField.setText("");
-
-            }
+            String text = textField.getText();
+            textArea.append(" - " + text + "\n");
+            textField.setText("");
         }
     }
 }
