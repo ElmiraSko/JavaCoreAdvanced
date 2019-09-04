@@ -8,8 +8,6 @@ public class ChatWindow extends JFrame{
     private JTextField textField;
     private JButton button;
     private JScrollPane scrollPane;
-    StringBuilder stringBuilder = new StringBuilder();
-
 
     public ChatWindow(){
         super("ChatWindow");
@@ -36,7 +34,6 @@ public class ChatWindow extends JFrame{
         button.addActionListener(new MyButtonListener());
         bottomPanel.add(textField);
         bottomPanel.add(button);
-
         centerPanel.add(scrollPane);
 
         add(northPanel, "North");
