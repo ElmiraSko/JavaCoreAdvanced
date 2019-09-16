@@ -4,18 +4,18 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class ClientHandler {
-    private MyServer myServer; // ссылка на сервер, пока null
-    private Socket socket;     // ссылка на сокет, пока null
-    private DataInputStream in;   // поток ввода-чтения в программу
-    private DataOutputStream out;  // поток вывода - запись из программы
+    private MyServer myServer;
+    private Socket socket;
+    private DataInputStream in;
+    private DataOutputStream out;
+    private static boolean flag = true;
 
-    private String name;  // имя
-
+    private String name;
     public String getName() {
         return name;
     }
 
-    public ClientHandler(MyServer myServer, Socket socket) { // конструктор, получает ссылку на сервер и сокет
+    public ClientHandler(MyServer myServer, Socket socket) {
         try {
             this.myServer = myServer;
             this.socket = socket;
@@ -40,46 +40,46 @@ public class ClientHandler {
 
     public void authentication() throws IOException {
         while (true) {
-            String str;
-            if (!(str = in.readUTF()).trim().isEmpty()) {
-            //String str = in.readUTF(); //ожидаем текст от клиента
-            if (str.startsWith("/auth")) { // если текст начинается с auth, тогда
-                String[] parts = str.split("\\s"); // создаем текстовый массив из строки str, по пробелам
-                String nick = myServer.getAuthService().getNickByLoginPass(parts[1], parts[2]);
-                //пытаемся получить ник из базы ников по логину и паролю
-                if (nick != null) { //если ник не пустой, т.е. существует
-                    if (!myServer.isNickBusy(nick)) { //проверяем,
-                        sendMsg("/authok " + nick); // отправка сообщения клиенту
-                        name = nick;
-                        myServer.broadcastMsg(name + " зашел в чат"); //отправка сообщения всем клиентам через сервер
-                        myServer.subscribe(this); // добавление в список
-                        return;
+            try{
+               String str = in.readUTF(); //ожидаем текст от клиента
+                if (str.startsWith("/auth")) {
+                    String[] parts = str.split("\\s");
+                    String nick = myServer.getAuthService().getNickByLoginPass(parts[1], parts[2]);
+                    if (nick != null) {
+                        if (!myServer.isNickBusy(nick)) {
+                            sendMsg("/authok " + nick);
+                            name = nick;
+                            myServer.broadcastMsg(name + " зашел в чат");
+                            myServer.subscribe(this);
+                            return;
+                        } else {
+                            sendMsg("Учетная запись уже используется");
+                        }
                     } else {
-                        sendMsg("Учетная запись уже используется");
+                        sendMsg("Неверные логин/пароль");
                     }
-                } else {
-                    sendMsg("Неверные логин/пароль");
                 }
+            }catch (IOException ex){
+                flag = false; //если клиент закрыл приложение не пройдя авторизацию
+                break;
             }
-        }else break;
         }
     }
 
     public void readMessages() throws IOException {//метод чтения из потока от клиента с которым связан
-        while (true) {
-            String strFromClient = in.readUTF(); //считываем текст от клиента
+        while (flag) {
+            System.out.println(socket.isConnected());
+            String strFromClient = in.readUTF();
             System.out.println("от " + name + ": " + strFromClient);
             if (strFromClient.equals("/end")) {
                 sendMsg("/end");
-                closeConnection();
-                System.out.println("- Я все закрыл");
+                socket.close();
                 return;
             }
 
             if (strFromClient.startsWith("/w")){
                 String[] words = strFromClient.split("\\s");
                 String textForName = words[1];
-                System.out.println(textForName + " llllllllllllllllll");
                 myServer.sendOnly(strFromClient, textForName);
             } else
             myServer.broadcastMsg(name + ": " + strFromClient);//отправка сообщения всем клиентам через сервер

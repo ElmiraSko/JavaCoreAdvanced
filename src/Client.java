@@ -37,14 +37,14 @@ public class Client extends JFrame {
         in = new DataInputStream(socket.getInputStream());
         out = new DataOutputStream(socket.getOutputStream());
            // setAuthorized(false);
-            Thread t = new Thread(new Runnable() { // отдельный поток, получает сообщения от сервера через ClientHandler
+            Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
                     while (true) {
-                        String strFromServer = " ";
+                        String strFromServer;
                         if (!(strFromServer = in.readUTF()).trim().isEmpty()) {
-                            if (strFromServer.startsWith("/authok")) {//если получаем "/authok"
+                            if (strFromServer.startsWith("/authok")) {
                                 //  setAuthorized(true);
                                 break;
                             }
@@ -58,12 +58,10 @@ public class Client extends JFrame {
                             if (strFromServer.equalsIgnoreCase("/end")) {
                                 System.out.println(strFromServer);
                                 flag_exit = true;
-                                closeConnection();
-                                System.out.println("Клиенту пришло приглашение закрыться = " + flag_exit);
                                 break;
                             }
-                            chatArea.append(strFromServer); //публикуем в текстовом окне
-                            chatArea.append("\n"); // перенос строки
+                            chatArea.append(strFromServer);
+                            chatArea.append("\n");
                         }
                     }
                 } catch (Exception e) {
@@ -77,7 +75,7 @@ public class Client extends JFrame {
 
     }catch (Exception ee){}
     }
-//====================================== метод класса
+//=====================================
     public void closeConnection() {
         try {
             in.close();
@@ -95,8 +93,8 @@ public class Client extends JFrame {
             e.printStackTrace();
         }
     }
-//======================================== метод класса
-    public void sendMessage() { //то что печатаем в текстовом поле отправляем на сервер
+
+    public void sendMessage() {
         if (!msgInputField.getText().trim().isEmpty()) {
             try {
                 out.writeUTF(msgInputField.getText());
@@ -108,7 +106,7 @@ public class Client extends JFrame {
             }
         }
     }
-//=================================================== внешний вид
+
     public void prepareGUI() {
         // Параметры окна
         setBounds(600, 150, 500, 500);
@@ -156,15 +154,14 @@ public class Client extends JFrame {
                         }
                     }
                 }).start();
-
-                    System.exit(0);
+                System.exit(0);
                 }
             }
         });
 
         setVisible(true);
     }
-//====  главный метод, запускает клиента
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
