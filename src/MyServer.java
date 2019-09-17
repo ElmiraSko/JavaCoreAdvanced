@@ -43,16 +43,18 @@ public class MyServer {
             }
             return false;
         }
-
+    //отправка сообщения все клиентам подряд
         public synchronized void broadcastMsg(String msg) {
-            for (ClientHandler o : clients) { //отправка сообщения все клиентам подряд
+            for (ClientHandler o : clients) {
                 o.sendMsg(msg);
             }
         }
-        public synchronized void sendOnly(String msg, String clientName){
+        //отправка сообщения конкретному клиенту с именем clientName
+        public synchronized void sendOnly(String msg, String forClient, ClientHandler from){
             for (ClientHandler o : clients) {
-                if (o.getName().equals(clientName)){
-                    o.sendMsg(msg);
+                if (o.getName().equals(forClient)){
+                    o.sendMsg(from.getName() + ": " + msg);
+                    from.sendMsg("- " + msg);
                 }
             }
 

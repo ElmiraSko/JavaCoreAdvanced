@@ -65,10 +65,9 @@ public class ClientHandler {
             }
         }
     }
-
-    public void readMessages() throws IOException {//метод чтения из потока от клиента с которым связан
+    //метод чтения из потока от клиента с которым связан
+    public void readMessages() throws IOException {
         while (flag) {
-            System.out.println(socket.isConnected());
             String strFromClient = in.readUTF();
             System.out.println("от " + name + ": " + strFromClient);
             if (strFromClient.equals("/end")) {
@@ -79,8 +78,9 @@ public class ClientHandler {
 
             if (strFromClient.startsWith("/w")){
                 String[] words = strFromClient.split("\\s");
-                String textForName = words[1];
-                myServer.sendOnly(strFromClient, textForName);
+                String forName = words[1];
+                String textForClient = strFromClient.substring(4 + forName.length());
+                myServer.sendOnly(textForClient, forName, this);
             } else
             myServer.broadcastMsg(name + ": " + strFromClient);//отправка сообщения всем клиентам через сервер
         }
