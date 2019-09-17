@@ -14,10 +14,10 @@ public class MyServer {
             return authService;
         }
 
-        public MyServer() {    // конструктор для создания сервера, сервер один,
+        public MyServer() {
             try (ServerSocket server = new ServerSocket(PORT)) {
                 authService = new BaseAuthService();      // создание объекта AuthService, база ников и паролей
-                // содержащего список объектов "логин-пароль-ник" с разу добавляет три объекта
+                // содержащего список объектов "логин-пароль-ник" сразу добавляет три объекта
                 authService.start();              //  вывод сообщения "Сервис аутентификации запущен"
                 clients = new ArrayList<>(); //создается список clients, для хранения объектов типа ClientHandler
                 while (true) {
@@ -34,27 +34,26 @@ public class MyServer {
                 }
             }
         }
-
-        public synchronized boolean isNickBusy(String nick) { //проверяем, есть ли среди подключившихся клиентов этот ник
-            for (ClientHandler o : clients) {  //для всех клиентов из списка
-                if (o.getName().equals(nick)) { //сравниваем ники уже подключенных с ником нового клиента
+    //проверяем, есть ли среди подключившихся клиентов этот ник
+        public synchronized boolean isNickBusy(String nick) {
+            for (ClientHandler o : clients) {
+                if (o.getName().equals(nick)) {
                     return true;
                 }
             }
             return false;
         }
-    //отправка сообщения все клиентам подряд
+    //отправка сообщения всем клиентам подряд
         public synchronized void broadcastMsg(String msg) {
             for (ClientHandler o : clients) {
                 o.sendMsg(msg);
             }
         }
-        //отправка сообщения конкретному клиенту с именем clientName
-        public synchronized void sendOnly(String msg, String forClient, ClientHandler from){
+        //отправка сообщения (msg) конкретному клиенту с именем forClient от from
+        public synchronized void sendOnly(String msg, String forClient, String from){
             for (ClientHandler o : clients) {
                 if (o.getName().equals(forClient)){
-                    o.sendMsg(from.getName() + ": " + msg);
-                    from.sendMsg("- " + msg);
+                    o.sendMsg("От " + from + ": " + msg);
                 }
             }
 

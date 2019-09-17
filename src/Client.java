@@ -1,9 +1,7 @@
 import javax.swing.*;
+import javax.swing.border.Border;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -13,15 +11,18 @@ import java.net.Socket;
 то только клиенту с ником nick3 должно прийти сообщение «Привет».*/
 public class Client extends JFrame {
     private static boolean flag_exit = false;
+    private boolean unAuthorised;
     private final String SERVER_ADDR = "localhost";
     private final int SERVER_PORT = 8189;
+    private String myNick;
 
-    private JTextField msgInputField;
+    private JTextField msgInputField, login, password;
     private JTextArea chatArea;
 
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
+
     public Client() {
         try {
             openConnection();
@@ -36,8 +37,8 @@ public class Client extends JFrame {
         socket = new Socket(SERVER_ADDR, SERVER_PORT);
         in = new DataInputStream(socket.getInputStream());
         out = new DataOutputStream(socket.getOutputStream());
-           // setAuthorized(false);
-            Thread t = new Thread(new Runnable() {
+        unAuthorised = true;
+        Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -45,13 +46,13 @@ public class Client extends JFrame {
                         String strFromServer;
                         if (!(strFromServer = in.readUTF()).trim().isEmpty()) {
                             if (strFromServer.startsWith("/authok")) {
-                                //  setAuthorized(true);
+                                myNick = strFromServer.split("\\s")[1];//клиент получил свой ник
+                                unAuthorised = false;
                                 break;
                             }
                             chatArea.append(strFromServer + "\n");
-                        }else break;
+                        }
                     }
-
                     while (true) {
                         String strFromServer;
                         if (!(strFromServer = in.readUTF()).trim().isEmpty()) {
@@ -60,8 +61,7 @@ public class Client extends JFrame {
                                 flag_exit = true;
                                 break;
                             }
-                            chatArea.append(strFromServer);
-                            chatArea.append("\n");
+                            chatArea.append(strFromServer + "\n");
                         }
                     }
                 } catch (Exception e) {
@@ -72,8 +72,7 @@ public class Client extends JFrame {
         });
             t.setDaemon(true);
             t.start();
-
-    }catch (Exception ee){}
+        }catch (Exception ee){}
     }
 //=====================================
     public void closeConnection() {
@@ -106,6 +105,23 @@ public class Client extends JFrame {
             }
         }
     }
+    void sendLoginAndPassword() { // используем в слушателе кнопки "Войти"
+        if (!login.getText().trim().isEmpty()) {
+            if (!password.getText().trim().isEmpty()) {
+                try{
+                String message = "/auth " + login.getText() + " " + password.getText();
+                System.out.println(message);
+                 out.writeUTF(message);
+                login.setText("");
+                password.setText("");
+                if (myNick != null) {
+                    login.setEditable(false);
+                    password.setEditable(false);
+                      }
+                }catch (IOException e){JOptionPane.showMessageDialog(this, "Ошибка передачи данных.");}
+                } else JOptionPane.showMessageDialog(this, "Введите пароль!");
+            } else JOptionPane.showMessageDialog(this, "Введите логин!");
+        }
 
     public void prepareGUI() {
         // Параметры окна
@@ -116,6 +132,37 @@ public class Client extends JFrame {
         chatArea.setEditable(false);
         chatArea.setLineWrap(true);
         add(new JScrollPane(chatArea), BorderLayout.CENTER);
+//Верхняяпанель для ввода логина и пароля и ника
+        JPanel topPanel = new JPanel(new FlowLayout());
+        JButton btnEnter = new JButton("Войти");
+        btnEnter.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendLoginAndPassword();
+            }
+        });
+        JButton btnReg = new JButton("Регистрация");
+        login = new JTextField("Логин:", 11);
+
+        login.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                login.setText("");
+            }
+        });
+        password = new JTextField("Пароль:",11);
+        password.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                password.setText("");
+            }
+        });
+
+        topPanel.add(login);
+        topPanel.add(password);
+        topPanel.add(btnEnter);
+        topPanel.add(btnReg);
+
 
         // Нижняя панель с полем для ввода сообщений и кнопкой отправки сообщений
         JPanel bottomPanel = new JPanel(new BorderLayout());
@@ -123,6 +170,7 @@ public class Client extends JFrame {
         bottomPanel.add(btnSendMsg, BorderLayout.EAST);
         msgInputField = new JTextField();
         add(bottomPanel, BorderLayout.SOUTH);
+        add(topPanel, BorderLayout.NORTH);
         bottomPanel.add(msgInputField, BorderLayout.CENTER);
         btnSendMsg.addActionListener(new ActionListener() {
             @Override
