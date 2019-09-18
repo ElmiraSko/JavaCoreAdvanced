@@ -56,7 +56,7 @@ public class ClientHandler {
                             sendMsg("Учетная запись уже используется");
                         }
                     } else {
-                        sendMsg("Неверные логин/пароль");
+                        sendMsg("Неверные логин/пароль. Введите снова или зарегистрируйтесь.");
                     }
                 }
             }catch (IOException ex){
