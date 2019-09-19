@@ -1,24 +1,24 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.EOFException;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 
 public class Client extends JFrame {
-    private static boolean flag_exit = false;
-    private final String SERVER_ADDR = "localhost";
-    private final int SERVER_PORT = 8189;
-    private String myNick;
-    private JButton btnEnter, btnAuth;
-    private JTextField msgInputField, login, password;
-    private JTextArea chatArea;
-    AuthWindow wind;
+    private String SERVER_ADDR = "localhost";
+    private int SERVER_PORT = 8189;
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
+
+    private boolean flag_exit = false;
+    private boolean conect = false;
+    private String myNick;
+    private JButton btnEnter, btnAuth, btnReg;
+    JLabel label_login, label_pass;
+    private JTextField msgInputField, login, password;
+    private JTextArea chatArea;
+    AuthWindow wind = null;
 
     public Client() {
         try {
@@ -28,36 +28,15 @@ public class Client extends JFrame {
         }
         prepareGUI();
     }
-//=================================================================
-     class AuthWindow extends JFrame{
-         AuthWindow(){
-            super("Авторизация участника чата");
-            JPanel panelButton = new JPanel();
-            panelButton.setLayout(new GridLayout(5,1));
-            panelButton.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
-            add(panelButton);
-            JLabel label_login = new JLabel("Введите логин:");
-            JLabel label_pass = new JLabel("Введите пароль:");
-            login = new JTextField(11);
-            password = new JTextField(11);
-            btnEnter = new JButton("Войти");
-            panelButton.add(label_login);
-            panelButton.add(login);
-            panelButton.add(label_pass);
-            panelButton.add(password);
-            panelButton.add(btnEnter);
-            btnEnter.addActionListener(new ActionListener() {
-                @Override
-            public void actionPerformed(ActionEvent e) {
-                sendLoginAndPassword();
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new Client();
             }
         });
-            setBounds(650, 250 , 400, 200);
-            setResizable(false);
-            setVisible(true);
-        }
-}
-    //================================
+    }
+//=================================================================
     public void openConnection() throws IOException {
         try {
         socket = new Socket(SERVER_ADDR, SERVER_PORT);
@@ -71,24 +50,39 @@ public class Client extends JFrame {
                         String strFromServer;
                         if (!(strFromServer = in.readUTF()).trim().isEmpty()) {
                             System.out.println(strFromServer + " - проверка");
-                            if (strFromServer.startsWith("/authok")) {
-                                myNick = strFromServer.split("\\s")[1];//клиент получил свой ник
-                                if (myNick != null) {
-                                    wind.dispose();
-                                    msgInputField.setEditable(true);
-                                    btnAuth.setEnabled(false);
+                            if (!strFromServer.startsWith("/time")) {
+                                if (strFromServer.startsWith("/authok")) {
+                                    myNick = strFromServer.split("\\s")[1];//клиент получил свой ник
+                                    if (myNick != null) {
+                                        System.out.println("Ник получен");
+                                        msgInputField.setEditable(true);
+                                        conect = true;
+                                        flag_exit = true;
+                                        btnAuth.setEnabled(false);
+                                    }
+                                    break;
                                 }
+                                JOptionPane.showMessageDialog(wind, strFromServer);
+                            }else {
+                                btnReg.setEnabled(true);
+                                btnAuth.setEnabled(false);
+                                flag_exit = true;
+                                btnAuth.setEnabled(false);
+                                if (wind != null){
+                                    wind.dispose();
+                                }
+                                JOptionPane.showMessageDialog(wind, "Время авторизации истекло.");
+                                closeConnection();
                                 break;
                             }
-                            JOptionPane.showMessageDialog(wind, strFromServer);
                         }
                     }
-                    while (true) {
+                    while (conect) {
                         String strFromServer;
-                        if (!(strFromServer = in.readUTF()).trim().isEmpty() || (in.read()>0 && in.read()>0)) {
+                        if (!(strFromServer = in.readUTF()).trim().isEmpty()) {
                             if (strFromServer.equalsIgnoreCase("/end")) {
                                 System.out.println(strFromServer);
-                                flag_exit = true;
+                                flag_exit = true; //использую при закрытии окна
                                 break;
                             }
                             chatArea.append(strFromServer + "\n");
@@ -103,7 +97,7 @@ public class Client extends JFrame {
         });
             t.setDaemon(true);
             t.start();
-        }catch (Exception ee){}
+        }catch (Exception ee){System.out.println("Где ошибка?");}
     }
 //=====================================
     public void closeConnection() {
@@ -127,6 +121,7 @@ public class Client extends JFrame {
     public void sendMessage() {
         if (!msgInputField.getText().trim().isEmpty()) {
             try {
+                System.out.println("Отпраляем после регистрации: " + msgInputField.getText());
                 out.writeUTF(msgInputField.getText());
                 msgInputField.setText("");
                 msgInputField.grabFocus();
@@ -136,6 +131,7 @@ public class Client extends JFrame {
             }
         }
     }
+
    private void sendLoginAndPassword() { // используем в слушателе кнопки "Войти"
         if (!login.getText().trim().isEmpty()) {
             if (!password.getText().trim().isEmpty()) {
@@ -146,12 +142,60 @@ public class Client extends JFrame {
                  out.flush();
                 login.setText("");
                 password.setText("");
-
                 }catch (IOException e){JOptionPane.showMessageDialog(this, "Ошибка передачи данных.");}
+                finally {
+                    wind.dispose();
+                }
                 } else JOptionPane.showMessageDialog(this, "Введите пароль!");
             } else JOptionPane.showMessageDialog(this, "Введите логин!");
         }
-
+        class AuthWindow extends JFrame{
+        AuthWindow(){
+            super("Авторизация участника чата");
+            JPanel panelButton = new JPanel();
+            panelButton.setLayout(new GridLayout(5,1));
+            panelButton.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
+            add(panelButton);
+            label_login = new JLabel("Введите логин:");
+            label_pass = new JLabel("Введите пароль:");
+            login = new JTextField(11);
+            password = new JTextField(11);
+            btnEnter = new JButton("Войти");
+            panelButton.add(label_login);
+            panelButton.add(login);
+            panelButton.add(label_pass);
+            panelButton.add(password);
+            panelButton.add(btnEnter);
+            btnEnter.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (e.getActionCommand().equals("Войти")){sendLoginAndPassword();}
+                    if (e.getActionCommand().equals("Подключиться к серверу")){
+                        if(!login.getText().equals("") && !password.getText().equals("")) {
+                            SERVER_ADDR = login.getText();
+                            SERVER_PORT = Integer.parseInt(password.getText());
+                            //chatArea.setText("Порт и хост введены, можно зкрыть окно");
+                        }
+                        try {
+                            // подключаемся к серверу
+                            socket = new Socket(SERVER_ADDR, SERVER_PORT);
+                            in = new DataInputStream(socket.getInputStream());
+                            out = new DataOutputStream(socket.getOutputStream());
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }finally {
+                            btnAuth.setEnabled(true);
+                            wind.dispose();
+                        }
+                    }
+                }
+            });
+            setBounds(650, 250 , 400, 200);
+            setResizable(false);
+            setVisible(true);
+        }
+    }
+    //================================
     public void prepareGUI() {
         setBounds(600, 150, 500, 500);
         setTitle("Клиент");
@@ -170,11 +214,25 @@ public class Client extends JFrame {
                 wind = new AuthWindow();
             }
         });
-        JButton btnReg = new JButton("Регистрация");
+        btnReg = new JButton("Подключиться");
+        btnReg.setEnabled(false);
+        btnReg.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (socket.isConnected()){
+                    wind = new AuthWindow();
+                    btnEnter.setText("Подключиться к серверу");
+                    label_login.setText("SERVER_HOST (localhost)");
+                    label_pass.setText("SERVER_PORT (8189)");
+                }
+            }
+        });
+
+
+ //=====================
+
         topPanel.add(btnAuth);
         topPanel.add(btnReg);
-
-
         // Нижняя панель с полем для ввода сообщений и кнопкой отправки сообщений
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(3,3,3,3));
@@ -201,7 +259,7 @@ public class Client extends JFrame {
         // Настраиваем действие на закрытие окна
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
-                if (flag_exit == true) {
+                if (flag_exit) {
                     System.exit(0);
                 } else {new Thread(new Runnable() {
                     @Override
@@ -220,13 +278,5 @@ public class Client extends JFrame {
         });
         setResizable(false);
         setVisible(true);
-    }
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new Client();
-            }
-        });
     }
 }

@@ -3,10 +3,11 @@ import java.util.List;
 
 public class BaseAuthService implements AuthService {
     //==========================================================================================
-    private class Entry { //внутренний класс -сущьность. Объект - логин, пароль, ник (3 в одном)
+    private class Entry { //внутренний класс -сущьность. Объект - логин, пароль, ник, timeAut(4 в одном)
         private String login;
         private String pass;
         private String nick;
+
         public Entry(String login, String pass, String nick) {
             this.login = login;
             this.pass = pass;
@@ -15,7 +16,14 @@ public class BaseAuthService implements AuthService {
     }
 //====================================================================================
     private List<Entry> entries; //список объектов являющихся "логин-пароль-ник"
-// три метода интерфейса:
+    public BaseAuthService() {  // конструктор, создает список объектов "паролей" и дабавляет три пароля
+        entries = new ArrayList<>();
+        entries.add(new Entry("login1", "pass1", "nick1"));
+        entries.add(new Entry("login2", "pass2", "nick2"));
+        entries.add(new Entry("login3", "pass3", "nick3"));
+    }
+
+    // три метода интерфейса:
     @Override
     public void start() { // вывод на консоль сообщения
         System.out.println("Сервис аутентификации запущен");
@@ -24,14 +32,6 @@ public class BaseAuthService implements AuthService {
     @Override
     public void stop() { // вывод на консоль сообщения
         System.out.println("Сервис аутентификации остановлен");
-    }
-
-
-    public BaseAuthService() {  // конструктор, создает список объектов "паролей" и дабавляет три пароля
-        entries = new ArrayList<>();
-        entries.add(new Entry("login1", "pass1", "nick1"));
-        entries.add(new Entry("login2", "pass2", "nick2"));
-        entries.add(new Entry("login3", "pass3", "nick3"));
     }
 
     @Override

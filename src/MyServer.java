@@ -16,8 +16,8 @@ public class MyServer {
 
         public MyServer() {
             try (ServerSocket server = new ServerSocket(PORT)) {
-                authService = new BaseAuthService();      // создание объекта AuthService, база ников и паролей
-                // содержащего список объектов "логин-пароль-ник" сразу добавляет три объекта
+                authService = new BaseAuthService();      // создание объекта AuthService, база
+                // содержащая список объектов "логин-пароль-ник"
                 authService.start();              //  вывод сообщения "Сервис аутентификации запущен"
                 clients = new ArrayList<>(); //создается список clients, для хранения объектов типа ClientHandler
                 while (true) {
