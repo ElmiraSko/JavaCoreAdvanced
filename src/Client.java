@@ -174,7 +174,6 @@ public class Client extends JFrame {
                         if(!login.getText().equals("") && !password.getText().equals("")) {
                             SERVER_ADDR = login.getText();
                             SERVER_PORT = Integer.parseInt(password.getText());
-                            //chatArea.setText("Порт и хост введены, можно зкрыть окно");
                         }
                         try {
                             // подключаемся к серверу

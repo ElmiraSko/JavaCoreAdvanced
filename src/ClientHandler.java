@@ -40,7 +40,7 @@ public class ClientHandler {
     }
 
     public void authentication() throws IOException {
-        while ((System.currentTimeMillis()-timeStart)/1000 <= 120) {
+        while ((System.currentTimeMillis()-timeStart)/1000 <= 60) {
             try {
                 String str = in.readUTF(); //ожидаем текст от клиента
                 System.out.println(str);
@@ -68,12 +68,9 @@ public class ClientHandler {
                 flag = false; //если клиент закрыл приложение не пройдя авторизацию
                 break;
             }
-//            finally {
-//                if (name == null){
-//                    sendMsg("/time");
-//                }
-//            }
         }
+        if(flag){sendMsg("Авторизация прошла успешно!");}
+        else{sendMsg("/time");}
     }
     //метод чтения из потока от клиента с которым связан
     public void readMessages() throws IOException {
